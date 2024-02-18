@@ -16,12 +16,20 @@ function getCapacityFromUnits(sounding: number, avgTankCapacityUnits: AverageTan
     const { from, to, values } = avgTankCapacityUnits[index]
 
     if (from < sounding && to > sounding) {
-      const prev = avgTankCapacityUnits[index-1];
+      let prevIndex = index - 1
 
-      if (prev.values.length != 9) {
+      if (avgTankCapacityUnits[prevIndex].values.length != 9) {
+        let acc = 0;
         return max + (function recurse() {
-          const acc = prev.values.pop() as number
-          return acc + values[sounding - from - 1]
+          const { values, to } = avgTankCapacityUnits[prevIndex]
+          acc += values.pop() as number
+          acc += avgTankCapacityUnits[prevIndex+1].values[(sounding - to) - 1]
+
+          prevIndex && prevIndex--
+
+          if (!prevIndex) return acc
+
+          return recurse()
         })()
       }
       return values[sounding % 10 - 1] + max
